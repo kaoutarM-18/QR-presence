@@ -15,7 +15,7 @@ return new class extends Migration
     {
        Schema::create('presences', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('etudiant_id')->constrained('users')->onDelete('cascade');
+    $table->foreignId('etudiant_id')->constrained('etudiants')->onDelete('cascade');
     $table->foreignId('seance_id')->constrained()->onDelete('cascade');
     $table->datetime('scanned_at');
     $table->string('status')->default('present');

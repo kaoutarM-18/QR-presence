@@ -6,12 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+
+    public function up()
     {
         Schema::create('professeurs', function (Blueprint $table) {
-            $table->id('id_prof');
-            $table->string('nom');
-            $table->string('prenom');
+            $table->id();
+
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
+
             $table->timestamps();
         });
     }

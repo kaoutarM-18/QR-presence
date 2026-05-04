@@ -11,22 +11,52 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class PresenceController extends Controller
 {
-    // Liste des présences pour une séance
+    // public function show($seanceId)
+    // {
+    //     // $seance = Seance::with(['cours', 'presences.etudiant'])
+    //     //     ->findOrFail($seanceId);
+
+    //     $seance = Seance::with([
+    //         'cours' => function($q) {
+    //             $q->withCount('etudiants');
+    //         },
+    //         'presences.etudiant'
+    //     ])->findOrFail($seanceId);
+
+    //     $presences  = $seance->presences;
+    //     $total      = $presences->count();
+    //     $taux       = $seance->cours->etudiants_count > 0
+    //                     ? round(($total / $seance->cours->etudiants_count) * 100)
+    //                     : 0;
+
+    //     return view('enseignant.presences.show', compact('seance', 'presences', 'total', 'taux'));
+    // }
+
     public function show($seanceId)
-    {
-        $seance = Seance::with(['cours', 'presences.etudiant'])
-            ->findOrFail($seanceId);
+{
+   $seance = Seance::with([
+        'cours.module.filiere',
+        'presences.etudiant'
+    ])->findOrFail($seanceId);
 
-        $presences  = $seance->presences;
-        $total      = $presences->count();
-        $taux       = $seance->cours->etudiants_count > 0
-                        ? round(($total / $seance->cours->etudiants_count) * 100)
-                        : 0;
+    $presences = $seance->presences;
 
-        return view('enseignant.presences.show', compact('seance', 'presences', 'total', 'taux'));
-    }
+    $total = $presences->count();
 
-    // Rapport PDF d'une séance
+    $totalEtudiants = \App\Models\Etudiant::where('filiere_id', $seance->cours->filiere_id)->count();
+
+    $taux = $totalEtudiants > 0
+        ? round(($total / $totalEtudiants) * 100)
+        : 0;
+
+    return view('enseignant.presences.show', compact(
+        'seance',
+        'presences',
+        'total',
+        'taux'
+    ));
+}
+
     public function exportPDF($seanceId)
     {
         $seance    = Seance::with(['cours', 'presences.etudiant'])->findOrFail($seanceId);
@@ -39,7 +69,7 @@ class PresenceController extends Controller
         return $pdf->download('presence-' . $seance->cours->nom_cours . '-' . $seance->date_heure->format('Y-m-d') . '.pdf');
     }
 
-    // Rapport global d'un cours
+    
     public function rapportCours($coursId)
     {
         $cours   = Cours::with(['seances.presences.etudiant'])->findOrFail($coursId);

@@ -23,7 +23,7 @@ class LoginController extends Controller
         if (Auth::attempt($request->only('email', 'password'))) {
             $request->session()->regenerate();
             
-            // ✅ Redirection selon le rôle
+            
             if (Auth::user()->role === 'enseignant') {
                 return redirect()->route('enseignant.dashboard');
             }

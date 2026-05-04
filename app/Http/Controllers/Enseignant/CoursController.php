@@ -5,161 +5,227 @@ namespace App\Http\Controllers\Enseignant;
 use App\Http\Controllers\Controller;
 use App\Models\Cours;
 use App\Models\Filiere;
+use App\Models\Presence;
 use App\Models\Seance;
+use App\Models\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\QrCodeHelper;
 use Carbon\Carbon;
 
-class CoursController extends Controller
-{public function dashboard()
-{
-    $enseignantId = 1; // temporaire
+class CoursController extends Controller {
 
-    $cours = Cours::withCount(['seances'])
+public function dashboard()
+{
+    $enseignantId = auth()->id();
+    $cours = Cours::withCount('seances')
         ->where('enseignant_id', $enseignantId)
         ->get();
 
-    // ✅ SÉANCES AUJOURD'HUI
-    $seancesAujourdhui = Seance::whereHas('cours', function($q) use ($enseignantId) {
+    foreach ($cours as $cour) {
+
+        $totalEtudiants = \App\Models\Etudiant::where('filiere_id', $cour->filiere_id)->count();
+
+        $cour->etudiants_count = $totalEtudiants;
+
+        $totalSeances = $cour->seances()->count();
+
+        $totalPresences = \App\Models\Presence::whereHas('seance', function ($q) use ($cour) {
+            $q->where('cours_id', $cour->id);
+        })->count();
+
+        $totalPossible = $totalEtudiants * $totalSeances;
+
+        $cour->taux_presence = $totalPossible > 0
+            ? round(($totalPresences / $totalPossible) * 100)
+            : 0;
+    }
+
+    $seancesAujourdhui = Seance::whereHas('cours', function ($q) use ($enseignantId) {
         $q->where('enseignant_id', $enseignantId);
     })->whereDate('date_heure', today())->count();
 
-    // ✅ SÉANCES DE LA SEMAINE (Lundi à Dimanche)
-    $debutSemaine = now()->startOfWeek();
-    $finSemaine = now()->endOfWeek();
-
-    $seancesSemaine = Seance::whereHas('cours', function($q) use ($enseignantId) {
+    $seancesSemaine = Seance::whereHas('cours', function ($q) use ($enseignantId) {
         $q->where('enseignant_id', $enseignantId);
-    })->whereBetween('date_heure', [$debutSemaine, $finSemaine])->count();
+    })->whereBetween('date_heure', [now()->startOfWeek(), now()->endOfWeek()])
+    ->count();
 
-    // ✅ STATS
+    $totalPresences = Presence::whereHas('seance.cours', function ($q) use ($enseignantId) {
+        $q->where('enseignant_id', $enseignantId);
+    })->count();
+
+    $totalSeances = Seance::whereHas('cours', function ($q) use ($enseignantId) {
+        $q->where('enseignant_id', $enseignantId);
+    })->count();
+    $tauxGlobal = $totalSeances > 0
+        ? round(($totalPresences / $totalSeances) * 100)
+        : 0;
     $stats = [
         'total_cours'          => $cours->count(),
-        'total_etudiants'      => 0,
+        'total_etudiants'      => \App\Models\Etudiant::count(),
         'seances_aujourdhui'   => $seancesAujourdhui,
         'seances_semaine'      => $seancesSemaine,
-        'taux_presence_global' => 0,
-        'cours_mois'           => 0,
+        'taux_presence_global' => $tauxGlobal,
     ];
 
-    $dernieres_presences = [];
-    
-    $chart_labels = $cours->pluck('nom_cours')->toArray();
-    $chart_data   = $cours->map(fn($c) => rand(60, 100))->toArray();
-    
-    $top_students_labels = [];
-    $top_students_data   = [];
+    $dernieres_presences = Presence::with([
+        'etudiant',
+        'seance.cours'
+    ])
+    ->whereHas('seance.cours', function ($q) use ($enseignantId) {
+        $q->where('enseignant_id', $enseignantId);
+    })
+    ->latest()
+    ->take(10)
+    ->get();
 
-    return view('enseignant.dashboard', compact(
-        'cours', 'stats', 'dernieres_presences',
-        'chart_labels', 'chart_data',
-        'top_students_labels', 'top_students_data'
-    ));
+    $modules = Module::with(['filiere', 'cours'])
+        ->whereHas('cours', function ($q) use ($enseignantId) {
+            $q->where('enseignant_id', $enseignantId);
+        }) ->get();
+
+    foreach ($modules as $module) {
+    $module->etudiants_count = \App\Models\Etudiant::where('filiere_id', $module->filiere_id)->count();
 }
 
-public function index()
-{
-    $filieres = Filiere::withCount('etudiants')->get();
-
-    $cours = Cours::withCount(['seances']) // ✅ 'etudiants' supprimé
-       // ->where('enseignant_id', auth()->id())
-        ->get();
-
-    return view('enseignant.cours.index', compact('cours', 'filieres')); // ✅ un seul return
+    return view('enseignant.dashboard', compact('cours', 'stats', 'dernieres_presences' , 'modules'));
 }
- public function create()
+
+
+
+public function moduleDetails($id)
 {
-    $filieres = Filiere::all(); // ← récupère depuis la BDD
+    $module = Module::with(['cours.seances'])
+        ->findOrFail($id);
+
+    foreach ($module->cours as $cour) {
+
+        $cour->etudiants_count = \App\Models\Etudiant::where('filiere_id', $module->filiere_id)->count();
+        $cour->seances_count = $cour->seances()->count();
+        $totalPresences = \App\Models\Presence::whereHas('seance', function ($q) use ($cour) {
+            $q->where('cours_id', $cour->id);
+        })->count();
+
+        // taux présence
+        $totalPossible = $cour->etudiants_count * $cour->seances_count;
+
+        $cour->taux_presence = $totalPossible > 0
+            ? round(($totalPresences / $totalPossible) * 100)
+            : 0;
+    }
+
+    return view('enseignant.modules.details', compact('module'));
+}
+
+public function getModulesByFiliere($id)
+{
+    $modules = Module::where('filiere_id', $id)->get();
+
+    return response()->json($modules);
+}
+
+
+public function create()
+{
+    $filieres = Filiere::all();
     return view('enseignant.cours.create', compact('filieres'));
 }
-  public function store(Request $request)
+
+
+public function store(Request $request)
 {
     $request->validate([
-        'nom_cours' => 'required|string|max:255',
+        'nom_cours'   => 'required|string|max:255',
         'description' => 'nullable|string',
+        'filiere_id'  => 'required|exists:filieres,id',
+        'module_id'   => 'required|exists:modules,id',
     ]);
 
     Cours::create([
         'nom_cours'     => $request->nom_cours,
         'description'   => $request->description,
-        'enseignant_id' => 1, //  temporaire car pas de login encore
+        'filiere_id'    => $request->filiere_id,
+        'module_id'     => $request->module_id,
+        'enseignant_id' => auth()->id(),
     ]);
 
-    return redirect()->route('enseignant.cours.index')
+
+    return redirect()->route('enseignant.dashboard')
         ->with('success', 'Cours créé avec succès');
+
 }
-    public function show($id)
-    {
-        $cours = Cours::with(['seances' => function($query) {
-            $query->orderBy('date_heure', 'desc');
-        }])
-        //->withCount(['etudiants'])
-          ->findOrFail($id);
-        
-       // if ($cours->enseignant_id !== Auth::id()) {
-         //   abort(403);
-       // }
-        
-        return view('enseignant.cours.show', compact('cours'));
-    }
-    
-    public function edit($id)
-    {
-        $cours = Cours::findOrFail($id);
-        
-      //  if ($cours->enseignant_id !== Auth::id()) {
-         //   abort(403);
-        //}
-        
-        return view('enseignant.cours.edit', compact('cours'));
-    }
-    
-    public function update(Request $request, $id)
-    {
-        $cours = Cours::findOrFail($id);
-        
-       // if ($cours->enseignant_id !== Auth::id()) {
-          //  abort(403);
-      //  }
-        
-        $request->validate([
-            'nom_cours' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
 
-        $cours->update($request->all());
+public function show($id)
+{
+    $cours = Cours::with(['seances' => function($query) {
+        $query->orderBy('date_heure', 'desc');
+    }])
+    //->withCount(['etudiants'])
+        ->findOrFail($id);
+    
+    if ($cours->enseignant_id !== Auth::id()) {
+        abort(403);
+    }
+    
+    return view('enseignant.cours.show', compact('cours'));
+}
 
-        return redirect()->route('enseignant.dashboard')
-            ->with('success', 'Cours modifié avec succès');
+public function edit($id)
+{
+    $cours = Cours::findOrFail($id);
+    
+    if ($cours->enseignant_id !== Auth::id()) {
+        abort(403);
     }
     
-    public function destroy($id)
-    {
-        $cours = Cours::findOrFail($id);
-        
-      //  if ($cours->enseignant_id !== Auth::id()) {
-          //  abort(403);
-       // }
-        
-        $cours->delete();
+    return view('enseignant.cours.edit', compact('cours'));
+}
 
-        return redirect()->route('enseignant.dashboard')
-            ->with('success', 'Cours supprimé avec succès');
+public function update(Request $request, $id)
+{
+    $cours = Cours::findOrFail($id);
+    
+    if ($cours->enseignant_id !== Auth::id()) {
+        abort(403);
     }
     
-    public function createSeance($coursId)
-    {
-        $cours = Cours::findOrFail($coursId);
-        
-       // if ($cours->enseignant_id !== Auth::id()) {
-          //  abort(403);
-      //  }
-        
-        return view('enseignant.seances.create', compact('cours'));
+    $request->validate([
+        'nom_cours' => 'required|string|max:255',
+        'description' => 'nullable|string',
+    ]);
+
+    $cours->update($request->all());
+
+    return redirect()->route('enseignant.dashboard')
+        ->with('success', 'Cours modifié avec succès');
+}
+    
+public function destroy($id)
+{
+    $cours = Cours::findOrFail($id);
+    
+    if ($cours->enseignant_id !== Auth::id()) {
+        abort(403);
     }
     
-   public function storeSeance(Request $request)
+    $cours->delete();
+
+    return redirect()->route('enseignant.dashboard')
+        ->with('success', 'Cours supprimé avec succès');
+}
+
+public function createSeance($coursId)
+{
+    $cours = Cours::findOrFail($coursId);
+    
+    if ($cours->enseignant_id !== Auth::id()) {
+        abort(403);
+    }
+    
+    return view('enseignant.seances.create', compact('cours'));
+}
+    
+public function storeSeance(Request $request)
 {
     $request->validate([
         'cours_id'   => 'required|exists:cours,id',
@@ -172,37 +238,38 @@ public function index()
         'cours_id'   => $request->cours_id,
         'date_heure' => $request->date_heure,
         'duree'      => $request->duree,
-          'type'       => $request->type,
+        'type'       => $request->type,
         'qr_expire'  => $request->has('qr_expire'),
     ]);
 
     return redirect()->route('enseignant.seances.qr', $seance->id)
         ->with('success', 'Séance créée avec succès');
-}public function showSeanceQR($seanceId)
+}
+
+public function showSeanceQR($seanceId)
 {
     $seance = Seance::with('cours')->findOrFail($seanceId);
 
-    // ✅ Commenté temporairement
-    // if ($seance->cours->enseignant_id !== Auth::id()) {
-    //     abort(403);
-    // }
+    if ($seance->cours->enseignant_id !== Auth::id()) {
+        abort(403);
+    }
 
-    $url    = route('etudiant.presences.scan', $seance->id);
+    //$url    = route('etudiant.presences.store', $seance->id);
+    $url = route('etudiant.presences.store') . '?seance_id=' . $seance->id;
     $qrCode = QrCodeHelper::generate($url, 300);
 
     return view('enseignant.seances.show_qr', compact('seance', 'qrCode'));
 }
     
-    public function downloadQR($seanceId)
+public function downloadQR($seanceId)
 {
     $seance = Seance::findOrFail($seanceId);
     
-    // ✅ Commenté temporairement car pas de login encore
-    // if ($seance->cours->enseignant_id !== Auth::id()) {
-    //     abort(403);
-    // }
+    if ($seance->cours->enseignant_id !== Auth::id()) {
+        abort(403);
+    }
     
-    $url = route('etudiant.presences.scan', $seance->id);
+    $url = route('etudiant.presences.store') . '?seance_id=' . $seance->id;
     $qrUrl = QrCodeHelper::downloadUrl($url, 300);
     
     return redirect($qrUrl);

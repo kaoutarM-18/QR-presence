@@ -3,90 +3,7 @@
 @section('title', 'QR Code Séance')
 
 @push('styles')
-<style>
-    body {
-        background: linear-gradient(135deg, #e0f7fa 0%, #e8eaf6 100%);
-        min-height: 100vh;
-    }
-    .qr-card {
-        border-radius: 20px;
-        border: none;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-        overflow: hidden;
-    }
-    .qr-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 30px;
-        color: white;
-        text-align: center;
-    }
-    .qr-body {
-        padding: 40px;
-        text-align: center;
-        background: white;
-    }
-    .qr-image-wrapper {
-        display: inline-block;
-        padding: 15px;
-        background: white;
-        border: 3px solid #667eea;
-        border-radius: 15px;
-        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
-    }
-    .qr-image-wrapper img {
-        display: block;
-        border-radius: 8px;
-    }
-    .info-badge {
-        background: linear-gradient(135deg, #e0f7fa 0%, #e8eaf6 100%);
-        border-radius: 50px;
-        padding: 8px 20px;
-        display: inline-block;
-        margin: 5px;
-        font-size: 0.9rem;
-        color: #555;
-    }
-    .btn-dl {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        padding: 12px 30px;
-        font-size: 1rem;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-block;
-    }
-    .btn-dl:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        color: white;
-    }
-    .btn-back {
-        background: transparent;
-        border: 2px solid #667eea;
-        color: #667eea;
-        border-radius: 50px;
-        padding: 12px 30px;
-        font-size: 1rem;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-block;
-    }
-    .btn-back:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-color: transparent;
-    }
-    .pulse {
-        animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-        0%   { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
-        70%  { box-shadow: 0 0 0 15px rgba(102, 126, 234, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
-    }
-</style>
+<link rel="stylesheet" href="{{asset('css/prof/qr_show.css')}}">
 @endpush
 
 @section('content')
@@ -106,7 +23,7 @@
                 <div class="qr-header">
                     <i class="fas fa-qrcode fa-3x mb-3 d-block"></i>
                     <h3 class="mb-1">QR Code de Présence</h3>
-                    <p class="mb-0 opacity-75">Les étudiants scannent ce code pour s'enregistrer</p>
+                    <p class="mb-0 opacity-75">Les étudiants scannent ce code pour marquer leur presence</p>
                 </div>
 
                 {{-- Body --}}

@@ -2,100 +2,7 @@
 @section('title', 'Présences de la séance')
 @push('styles')
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-    * { font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); min-height: 100vh; }
-    .page-wrapper { padding: 2rem 1rem 4rem; }
-    .breadcrumb-nav { max-width:1000px; margin:0 auto 1.5rem; display:flex; align-items:center; gap:.5rem; font-size:.8rem; color:rgba(255,255,255,.4); }
-    .breadcrumb-nav a { color:rgba(255,255,255,.6); text-decoration:none; }
-    .breadcrumb-nav a:hover { color:#a78bfa; }
-    .breadcrumb-nav .current { color:#34d399; font-weight:600; }
-
-    .hero-card {
-        max-width:1000px; margin:0 auto 2rem;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        border-radius:24px; padding:2rem;
-        box-shadow:0 20px 50px rgba(99,102,241,.4);
-    }
-    .hero-top { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
-    .hero-info h2 { font-size:1.4rem; font-weight:800; color:#fff; margin:0 0 .3rem; }
-    .hero-info p { color:rgba(255,255,255,.7); font-size:.85rem; margin:0; }
-    .hero-stats { display:flex; gap:1rem; flex-wrap:wrap; margin-top:1.5rem; }
-    .hero-stat { background:rgba(255,255,255,.15); border-radius:14px; padding:.8rem 1.2rem; text-align:center; }
-    .hero-stat-val { font-size:1.8rem; font-weight:800; color:#fff; display:block; }
-    .hero-stat-lbl { font-size:.72rem; color:rgba(255,255,255,.65); }
-
-    .btn-export {
-        display:flex; align-items:center; gap:.5rem;
-        padding:.8rem 1.5rem;
-        background:#fff; color:#6366f1;
-        border-radius:50px; font-size:.88rem; font-weight:700;
-        text-decoration:none; transition:all .25s;
-        box-shadow:0 4px 15px rgba(0,0,0,.2);
-    }
-    .btn-export:hover { transform:translateY(-2px); color:#6366f1; }
-
-    .table-card {
-        max-width:1000px; margin:0 auto;
-        background:rgba(255,255,255,.05);
-        border:1px solid rgba(255,255,255,.1);
-        border-radius:24px; overflow:hidden;
-    }
-
-    .table-header {
-        padding:1.2rem 1.8rem;
-        background:rgba(255,255,255,.04);
-        border-bottom:1px solid rgba(255,255,255,.07);
-        display:flex; align-items:center; justify-content:space-between;
-    }
-
-    .table-title { font-size:1rem; font-weight:800; color:#fff; margin:0; }
-    .table-count { font-size:.78rem; color:rgba(255,255,255,.45); }
-
-    table { width:100%; border-collapse:collapse; }
-    thead tr { background:rgba(99,102,241,.15); }
-    thead th {
-        padding:1rem 1.5rem;
-        font-size:.75rem; font-weight:700;
-        color:rgba(255,255,255,.6);
-        text-align:left;
-        text-transform:uppercase;
-        letter-spacing:.05em;
-    }
-    tbody tr {
-        border-bottom:1px solid rgba(255,255,255,.05);
-        transition:background .2s;
-    }
-    tbody tr:hover { background:rgba(255,255,255,.04); }
-    tbody tr:last-child { border-bottom:none; }
-    tbody td { padding:.9rem 1.5rem; font-size:.88rem; color:rgba(255,255,255,.8); }
-
-    .badge-present {
-        background:rgba(16,185,129,.15);
-        color:#34d399;
-        border:1px solid rgba(16,185,129,.3);
-        padding:.25rem .8rem;
-        border-radius:50px;
-        font-size:.72rem;
-        font-weight:700;
-    }
-
-    .avatar {
-        width:34px; height:34px;
-        background:linear-gradient(135deg,#6366f1,#8b5cf6);
-        border-radius:50%;
-        display:flex; align-items:center; justify-content:center;
-        font-size:.85rem; font-weight:700; color:#fff;
-        flex-shrink:0;
-    }
-
-    .student-cell { display:flex; align-items:center; gap:.8rem; }
-
-    .empty-state {
-        text-align:center; padding:3rem;
-        color:rgba(255,255,255,.35);
-    }
-</style>
+<link rel="stylesheet" href="{{asset('css/prof/showPresence.css')}}">
 @endpush
 
 @section('content')
@@ -165,11 +72,11 @@
                     <td style="color:rgba(255,255,255,.3);font-size:.78rem;">{{ $i + 1 }}</td>
                     <td>
                         <div class="student-cell">
-                            <div class="avatar">{{ strtoupper(substr($presence->etudiant->name ?? 'E', 0, 1)) }}</div>
-                            {{ $presence->etudiant->name ?? 'N/A' }}
+                            <div class="avatar">{{ strtoupper(substr($presence->etudiant->user->nom ?? 'E', 0, 1)) }}</div>
+                            {{ $presence->etudiant->user->nom ?? ' ' }} {{ $presence->etudiant->user->prenom ?? ' ' }}
                         </div>
                     </td>
-                    <td style="color:rgba(255,255,255,.45);">{{ $presence->etudiant->email ?? 'N/A' }}</td>
+                    <td style="color:rgba(255,255,255,.45);">{{ $presence->etudiant->user->email ?? '---' }}</td>
                     <td>
                         <i class="fas fa-clock" style="color:#a78bfa;margin-right:.3rem;"></i>
                         {{ \Carbon\Carbon::parse($presence->scanned_at)->format('H:i:s') }}

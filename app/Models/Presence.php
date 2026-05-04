@@ -14,9 +14,9 @@ class Presence extends Model
         'scanned_at' => 'datetime',
     ];
 
-    public function etudiant()
+   public function etudiant()
     {
-        return $this->belongsTo(User::class, 'etudiant_id');
+        return $this->belongsTo(Etudiant::class);
     }
 
     public function seance()

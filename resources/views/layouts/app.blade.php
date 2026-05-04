@@ -6,7 +6,7 @@
     <title>@yield('title', 'Gestion Présences')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    @stack('styles')  {{-- ✅ IMPORTANT pour les styles du dashboard --}}
+    @stack('styles') 
 </head>
 <body>
 
@@ -15,10 +15,24 @@
             <a class="navbar-brand fw-bold" href="#">
                 <i class="fas fa-qrcode"></i> Gestion Présences
             </a>
-            <div class="navbar-nav ms-auto">
-                <span class="nav-link text-white">
-                    <i class="fas fa-user-circle"></i> {{ Auth::user()->name ?? 'Invité' }}
-                </span>
+           <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-2"></i>
+                        {{ Auth::user()->prenom ?? '' }}
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button class="dropdown-item text-danger" type="submit">
+                                    Déconnexion
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
@@ -38,6 +52,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    @stack('scripts')  {{-- ✅ IMPORTANT pour Chart.js --}}
+    @stack('scripts') 
 </body>
 </html>

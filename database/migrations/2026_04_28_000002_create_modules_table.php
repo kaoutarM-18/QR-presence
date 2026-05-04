@@ -9,9 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('modules', function (Blueprint $table) {
-            $table->id('id_module');
+            $table->id();
             $table->string('nom');
-            $table->unsignedBigInteger('id_filiere');
+            $table->foreignId('filiere_id')
+                ->constrained('filieres')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

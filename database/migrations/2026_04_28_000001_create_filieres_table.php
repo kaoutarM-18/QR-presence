@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('filieres', function (Blueprint $table) {
-            $table->id('id_filiere');
+            $table->id();
             $table->string('nom_filiere');
             $table->integer('nombre_etudiants')->default(0); // ✅ ajouté
             $table->timestamps();
