@@ -1,3 +1,19 @@
+## Configuration
+
+1. Copier le fichier .env.example vers .env
+2. Configurer la base de données
+3. Exécuter:
+   php artisan key:generate
+   php artisan migrate --seed
+4. Lancer le projet:
+   php artisan serve
+
+## Compte par défaut
+
+Login: ENSIASD  
+Mot de passe: ENSIASD2026  
+Rôle: enseignant
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
