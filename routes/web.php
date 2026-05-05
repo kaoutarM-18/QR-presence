@@ -15,18 +15,6 @@ Route::middleware(['auth'])->group(function () {
 
 });
 
-Route::post('/logout', function (Request $request) {
-
-    Auth::logout();
-
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-
-    $request->session()->flush(); 
-
-    return redirect('/login');
-})->name('logout');
-
 //Route::get('/', fn() => redirect()->route('login'));
 // Accueil
 Route::get('/', function () {

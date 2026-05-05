@@ -52,10 +52,10 @@
                 </label>
                 <div style="position:relative;">
                     <i class="fas fa-envelope input-icon"></i>
-                    <input type="email"
+                    <input type="text"
                            name="email"
                            class="auth-input with-icon"
-                           placeholder="votre@email.com"
+                           placeholder="email ou Login"
                            value="{{ old('email') }}"
                            required autofocus>
                 </div>

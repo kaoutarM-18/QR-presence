@@ -8,11 +8,21 @@
 4. Lancer le projet:
    php artisan serve
 
-## Compte par défaut
+## Compte enseignat par défaut :
 
-Login: ENSIASD  
+Login: ENSIASD 
 Mot de passe: ENSIASD2026  
 Rôle: enseignant
+
+## compte etudiant par defaut :
+
+email de Login: etudiant@ensiasd.com 
+Mot de passe: etudiant123  
+Rôle: etudiant
+
+## filieres par defaut :
+MGSI 
+SDBDIA
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 

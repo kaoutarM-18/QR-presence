@@ -15,6 +15,7 @@ use Carbon\Carbon;
 
 class CoursController extends Controller {
 
+// fonction qui retourne les information pour le dashbord ensaigant
 public function dashboard()
 {
     $enseignantId = auth()->id();
@@ -68,6 +69,7 @@ public function dashboard()
         'taux_presence_global' => $tauxGlobal,
     ];
 
+    // afficher seulemnt les 10 dernier presences
     $dernieres_presences = Presence::with([
         'etudiant',
         'seance.cours'
@@ -117,21 +119,23 @@ public function moduleDetails($id)
     return view('enseignant.modules.details', compact('module'));
 }
 
+// permet de retiurner juste les modules associer a une filiere 
 public function getModulesByFiliere($id)
 {
     $modules = Module::where('filiere_id', $id)->get();
 
+    // la reponse est retourner en JSON et utilisable en JS pour la formulaire
     return response()->json($modules);
 }
 
-
+// fonction qui retourne toute les filiere afin de creer un cours
 public function create()
 {
     $filieres = Filiere::all();
     return view('enseignant.cours.create', compact('filieres'));
 }
 
-
+// ici en cree le cours dans la BD et en retourne vec un msg de succes
 public function store(Request $request)
 {
     $request->validate([
@@ -152,9 +156,9 @@ public function store(Request $request)
 
     return redirect()->route('enseignant.dashboard')
         ->with('success', 'Cours créé avec succès');
-
 }
 
+// fonction pour afficher le cours et ces seances,  d'un prof
 public function show($id)
 {
     $cours = Cours::with(['seances' => function($query) {
@@ -163,6 +167,7 @@ public function show($id)
     //->withCount(['etudiants'])
         ->findOrFail($id);
     
+        // si ce n'est pas le prof propriataire refuser l'acces!
     if ($cours->enseignant_id !== Auth::id()) {
         abort(403);
     }
@@ -170,6 +175,7 @@ public function show($id)
     return view('enseignant.cours.show', compact('cours'));
 }
 
+// aceder a la page pour modifier un cours
 public function edit($id)
 {
     $cours = Cours::findOrFail($id);
@@ -181,6 +187,7 @@ public function edit($id)
     return view('enseignant.cours.edit', compact('cours'));
 }
 
+// modifier le cours 
 public function update(Request $request, $id)
 {
     $cours = Cours::findOrFail($id);
@@ -199,7 +206,8 @@ public function update(Request $request, $id)
     return redirect()->route('enseignant.dashboard')
         ->with('success', 'Cours modifié avec succès');
 }
-    
+
+// supprimer un cours
 public function destroy($id)
 {
     $cours = Cours::findOrFail($id);
@@ -224,7 +232,8 @@ public function createSeance($coursId)
     
     return view('enseignant.seances.create', compact('cours'));
 }
-    
+   
+
 public function storeSeance(Request $request)
 {
     $request->validate([

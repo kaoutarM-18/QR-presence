@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('filieres', function (Blueprint $table) {
             $table->id();
             $table->string('nom_filiere');
-            $table->integer('nombre_etudiants')->default(0); // ✅ ajouté
+            $table->integer('nombre_etudiants')->default(0);
             $table->timestamps();
         });
     }

@@ -16,6 +16,8 @@ public function index(){
     return view('etudiant.dashboard');
 }
 
+// fonction pour marquer la presence :
+
 public function store(Request $request){
 
     $seance = Seance::findOrFail($request->seance_id);
@@ -39,7 +41,7 @@ public function store(Request $request){
     return redirect() ->route('etudiant.dashboard')->with('success', 'Présence enregistrée');
 }
 
-
+// fonction pour afficher le dashboard etudiant avec tous ces details
 public function dashboard()
 {
 

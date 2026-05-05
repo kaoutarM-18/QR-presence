@@ -11,28 +11,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class PresenceController extends Controller
 {
-    // public function show($seanceId)
-    // {
-    //     // $seance = Seance::with(['cours', 'presences.etudiant'])
-    //     //     ->findOrFail($seanceId);
 
-    //     $seance = Seance::with([
-    //         'cours' => function($q) {
-    //             $q->withCount('etudiants');
-    //         },
-    //         'presences.etudiant'
-    //     ])->findOrFail($seanceId);
-
-    //     $presences  = $seance->presences;
-    //     $total      = $presences->count();
-    //     $taux       = $seance->cours->etudiants_count > 0
-    //                     ? round(($total / $seance->cours->etudiants_count) * 100)
-    //                     : 0;
-
-    //     return view('enseignant.presences.show', compact('seance', 'presences', 'total', 'taux'));
-    // }
-
-    public function show($seanceId)
+public function show($seanceId)
 {
    $seance = Seance::with([
         'cours.module.filiere',
